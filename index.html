@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QRpeludo en Línea</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  </head>
+  <body class="bg-gray-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+
+      // Firebase Config
+      const firebaseConfig = {
+        apiKey: "AIzaSyBx4PYcwRb-0szFnn3JlvayhfwKFLvBQJM",
+        authDomain: "qrpeludo.firebaseapp.com",
+        databaseURL: "https://qrpeludo-default-rtdb.firebaseio.com",
+        projectId: "qrpeludo",
+        storageBucket: "qrpeludo.firebasestorage.app",
+        messagingSenderId: "1041088911201",
+        appId: "1:1041088911201:web:06d8c8d37a807b03161720",
+        measurementId: "G-5YG5WW7LX0"
+      };
+
+      // Inicializar Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      const App = () => {
+        const [pets, setPets] = useState([]);
+        const [newPet, setNewPet] = useState({ name: '', owner: '', phone: '' });
+
+        useEffect(() => {
+          const petsRef = db.ref('pets');
+          petsRef.on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            const petList = Object.entries(data).map(([id, pet]) => ({ id, ...pet }));
+            setPets(petList);
+          });
+        }, []);
+
+        const addPet = () => {
+          if (newPet.name.trim()) {
+            db.ref('pets').push(newPet);
+            setNewPet({ name: '', owner: '', phone: '' });
+          }
+        };
+
+        const deletePet = (id) => {
+          db.ref('pets/' + id).remove();
+        };
+
+        return (
+          <div className="max-w-4xl mx-auto p-4">
+            <h1 className="text-4xl font-bold text-center mb-6">QRpeludo 🐾</h1>
+
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+              <h2 className="text-2xl font-semibold mb-4">Agregar Mascota</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <input
+                  type="text"
+                  placeholder="Nombre"
+                  value={newPet.name}
+                  onChange={(e) => setNewPet({ ...newPet, name: e.target.value })}
+                  className="p-2 border rounded"
+                />
+                <input
+                  type="text"
+                  placeholder="Dueño"
+                  value={newPet.owner}
+                  onChange={(e) => setNewPet({ ...newPet, owner: e.target.value })}
+                  className="p-2 border rounded"
+                />
+                <input
+                  type="text"
+                  placeholder="Teléfono"
+                  value={newPet.phone}
+                  onChange={(e) => setNewPet({ ...newPet, phone: e.target.value })}
+                  className="p-2 border rounded"
+                />
+              </div>
+              <button onClick={addPet} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Guardar
+              </button>
+            </div>
+
+            <div className="grid gap-4">
+              {pets.map((pet) => (
+                <div key={pet.id} className="bg-white p-4 rounded-xl shadow-md">
+                  <h3 className="text-xl font-bold">{pet.name}</h3>
+                  <p className="text-gray-600">Dueño: {pet.owner}</p>
+                  <p className="text-gray-600">Teléfono: {pet.phone}</p>
+                  <p className="text-sm text-blue-500 break-all">
+                    Enlace: {window.location.origin}/pet/{pet.id}
+                  </p>
+                  <button
+                    onClick={() => deletePet(pet.id)}
+                    className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      };
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
+</html>
